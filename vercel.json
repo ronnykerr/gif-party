@@ -1,7 +1,6 @@
 {
-  "routes": [
-    { "src": "/submit", "dest": "/submit.html" },
-    { "src": "/api/submit", "dest": "/api/submit.js" },
-    { "src": "/api/current", "dest": "/api/current.js" }
+  "rewrites": [
+    { "source": "/api/submit", "destination": "/api/submit.js" },
+    { "source": "/api/current", "destination": "/api/current.js" }
   ]
 }
