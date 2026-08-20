@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Send a GIF</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Space+Mono&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #f5f5f0;
+      --acid: #e8ff3c;
+      --dim: #1a1a1a;
+      --border: #2a2a2a;
+      --muted: #555;
+    }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 20px 16px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    header h1 span {
+      color: var(--acid);
+    }
+
+    .search-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    #search-input {
+      flex: 1;
+      background: var(--dim);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: var(--white);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    #search-input:focus {
+      border-color: var(--acid);
+    }
+
+    #search-input::placeholder {
+      color: var(--muted);
+    }
+
+    #search-btn {
+      background: var(--acid);
+      color: var(--black);
+      border: none;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-appearance: none;
+    }
+
+    #name-input {
+      background: var(--dim);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--white);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      outline: none;
+      width: 100%;
+      -webkit-appearance: none;
+    }
+
+    #name-input:focus {
+      border-color: var(--acid);
+    }
+
+    #name-input::placeholder {
+      color: var(--muted);
+    }
+
+    #results {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3px;
+      padding: 3px;
+      overflow-y: auto;
+    }
+
+    .gif-thumb {
+      position: relative;
+      aspect-ratio: 1;
+      overflow: hidden;
+      cursor: pointer;
+      background: var(--dim);
+    }
+
+    .gif-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.15s ease;
+    }
+
+    .gif-thumb:active img {
+      transform: scale(0.96);
+    }
+
+    .gif-thumb .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(232, 255, 60, 0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease;
+    }
+
+    .gif-thumb:active .overlay {
+      background: rgba(232, 255, 60, 0.3);
+    }
+
+    .send-label {
+      color: var(--black);
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+
+    .gif-thumb:active .send-label {
+      opacity: 1;
+    }
+
+    #empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    #empty-state .hint {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    #empty-state .big {
+      font-size: 40px;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--acid);
+      color: var(--black);
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 12px 24px;
+      border-radius: 100px;
+      transition: transform 0.3s ease;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    #loading {
+      display: none;
+      flex: 1;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border);
+      border-top-color: var(--acid);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Send a GIF <span>to the screen</span></h1>
+    <input id="name-input" type="text" placeholder="Your name (optional)" maxlength="20" />
+    <div class="search-row">
+      <input id="search-input" type="text" placeholder="Search GIFs..." autocomplete="off" />
+      <button id="search-btn">Search</button>
+    </div>
+  </header>
+
+  <div id="loading"><div class="spinner"></div></div>
+
+  <div id="empty-state">
+    <div class="big">👆</div>
+    <div class="hint">Search for a GIF above<br>then tap to send it to the screen</div>
+  </div>
+
+  <div id="results"></div>
+
+  <div id="toast">Sent to the screen ✓</div>
+
+  <script>
+    const KLIPY_KEY = 'y68fOwjhbOtVf2v2QCGpAXRFlmYrQa5FiYNfwwT4BBUXtxr7yYJ7JHERt6IhFeBa';
+
+    const searchInput = document.getElementById('search-input');
+    const searchBtn = document.getElementById('search-btn');
+    const nameInput = document.getElementById('name-input');
+    const results = document.getElementById('results');
+    const emptyState = document.getElementById('empty-state');
+    const loading = document.getElementById('loading');
+    const toast = document.getElementById('toast');
+
+    searchBtn.addEventListener('click', doSearch);
+    searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+    async function doSearch() {
+      const q = searchInput.value.trim();
+      if (!q) return;
+
+      results.innerHTML = '';
+      emptyState.style.display = 'none';
+      loading.style.display = 'flex';
+
+      try {
+        const res = await fetch(
+          `https://api.klipy.com/api/v1/${KLIPY_KEY}/gifs/search?q=${encodeURIComponent(q)}&limit=20`
+        );
+        const data = await res.json();
+        loading.style.display = 'none';
+        renderResults(data.data || []);
+      } catch (e) {
+        loading.style.display = 'none';
+        emptyState.style.display = 'flex';
+      }
+    }
+
+    function renderResults(gifs) {
+      if (!gifs.length) {
+        emptyState.style.display = 'flex';
+        return;
+      }
+
+      gifs.forEach(gif => {
+        const media = gif.files?.gif_preview || gif.files?.gif || {};
+        const thumbUrl = media.url || '';
+        const fullUrl = gif.files?.gif?.url || thumbUrl;
+
+        if (!thumbUrl) return;
+
+        const div = document.createElement('div');
+        div.className = 'gif-thumb';
+        div.innerHTML = `
+          <img src="${thumbUrl}" alt="gif" loading="lazy" />
+          <div class="overlay"><span class="send-label">Send</span></div>
+        `;
+        div.addEventListener('click', () => sendGif(fullUrl));
+        results.appendChild(div);
+      });
+    }
+
+    async function sendGif(url) {
+      const sender = nameInput.value.trim() || null;
+      try {
+        await fetch('/api/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, sender })
+        });
+        showToast();
+      } catch (e) {
+        showToast('Error — try again');
+      }
+    }
+
+    function showToast(msg = 'Sent to the screen ✓') {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+  </script>
+</body>
+</html>
