@@ -1,7 +1,7 @@
 {
-  "rewrites": [
-    { "source": "/submit", "destination": "/submit.html" },
-    { "source": "/api/submit", "destination": "/api/submit.js" },
-    { "source": "/api/current", "destination": "/api/current.js" }
+  "routes": [
+    { "src": "/submit", "dest": "/submit.html" },
+    { "src": "/api/submit", "dest": "/api/submit.js" },
+    { "src": "/api/current", "dest": "/api/current.js" }
   ]
 }
