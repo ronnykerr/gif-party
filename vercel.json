@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/submit", "destination": "/api/submit.js" },
-    { "source": "/api/current", "destination": "/api/current.js" }
+    { "source": "/submit", "destination": "/submit.html" },
+    { "source": "/api/(.*)", "destination": "/api/$1.js" }
   ]
 }
