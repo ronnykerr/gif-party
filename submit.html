@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>Send a GIF</title>
+  <title>Send a GIF for fun!!!</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Space+Mono&display=swap');
 
@@ -249,8 +249,6 @@
   <div id="toast">Sent to the screen ✓</div>
 
   <script>
-    const KLIPY_KEY = 'y68fOwjhbOtVf2v2QCGpAXRFlmYrQa5FiYNfwwT4BBUXtxr7yYJ7JHERt6IhFeBa';
-
     const searchInput = document.getElementById('search-input');
     const searchBtn = document.getElementById('search-btn');
     const nameInput = document.getElementById('name-input');
@@ -271,12 +269,10 @@
       loading.style.display = 'flex';
 
       try {
-        const res = await fetch(
-          `https://api.klipy.com/api/v1/${KLIPY_KEY}/gifs/search?q=${encodeURIComponent(q)}&limit=20`
-        );
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
         const data = await res.json();
         loading.style.display = 'none';
-        renderResults(data.data || []);
+        renderResults(data?.data?.data || []);
       } catch (e) {
         loading.style.display = 'none';
         emptyState.style.display = 'flex';
@@ -290,16 +286,15 @@
       }
 
       gifs.forEach(gif => {
-        const media = gif.files?.gif_preview || gif.files?.gif || {};
-        const thumbUrl = media.url || '';
-        const fullUrl = gif.files?.gif?.url || thumbUrl;
+        const thumbUrl = gif.file?.sm?.gif?.url || gif.file?.xs?.gif?.url || '';
+        const fullUrl = gif.file?.hd?.gif?.url || thumbUrl;
 
         if (!thumbUrl) return;
 
         const div = document.createElement('div');
         div.className = 'gif-thumb';
         div.innerHTML = `
-          <img src="${thumbUrl}" alt="gif" loading="lazy" />
+          <img src="${thumbUrl}" alt="${gif.title || 'gif'}" loading="lazy" />
           <div class="overlay"><span class="send-label">Send</span></div>
         `;
         div.addEventListener('click', () => sendGif(fullUrl));
